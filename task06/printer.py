@@ -2,18 +2,55 @@ from model import *
 import textwrap
 
 
+class ExpressionPrinter(ASTNodeVisitor):
+    def visit_conditional(self, acceptor):
+        pass
+
+    def visit_function_definition(self, acceptor):
+        pass
+
+    def visit_print(self, acceptor):
+        pass
+
+    def visit_read(self, acceptor):
+        pass
+
+    def visit_number(self, number):
+        return str(number.value)
+
+    def visit_reference(self, reference):
+        return reference.name
+
+    def visit_binary_operation(self, binary_op):
+        return ('(' + binary_op.lhs.accept(self) + ' ' +
+                binary_op.op + ' ' + binary_op.rhs.accept(self) + ')')
+
+    def visit_unary_operation(self, unary_op):
+        return '(' + unary_op.op + unary_op.expr.accept(self) + ')'
+
+    def visit_function_call(self, function_call):
+        result = ''
+        result += function_call.fun_expr.accept(self) + '('
+        for arg in function_call.args:
+            result += arg.accept(self) + ', '
+        if function_call.args:
+            result = result[:-2]
+        result += ')'
+        return result
+
+    def visit_function(self, acceptor):
+        pass
+
+
 class PrettyPrinter(ASTNodeVisitor):
     INDENT = '    '
 
-    def __init__(self):
-        self.nesting_level = 0
-        self.op_nesting_level = 0
+    def __init__(self, expression_printer):
+        self.expression_printer = expression_printer
 
     def visit_conditional(self, conditional):
         result = 'if ('
-        self.nesting_level += 1
-        result += conditional.condition.accept(self)
-        self.nesting_level -= 1
+        result += conditional.condition.accept(self.expression_printer)
         result += ') {\n'
         result += self.visit_expressions(conditional.if_true)
         result += '}'
@@ -37,66 +74,26 @@ class PrettyPrinter(ASTNodeVisitor):
 
     def visit_print(self, print):
         result = 'print '
-        self.nesting_level += 1
-        result += print.expr.accept(self) + ';'
-        self.nesting_level -= 1
+        result += print.expr.accept(self.expression_printer) + ';'
         return result
 
     def visit_read(self, read):
         return 'read ' + read.name + ';'
 
     def visit_number(self, number):
-        result = str(number.value)
-        if not self.nesting_level:
-            result += ';'
-        return result
+        return number.accept(self.expression_printer) + ';'
 
     def visit_reference(self, reference):
-        result = str(reference.name)
-        if not self.nesting_level:
-            result += ';'
-        return result
+        return reference.accept(self.expression_printer) + ';'
 
     def visit_binary_operation(self, binary_op):
-        self.op_nesting_level += 1
-        self.nesting_level += 1
-        result = (binary_op.lhs.accept(self) + ' ' +
-                  binary_op.op + ' ' + binary_op.rhs.accept(self))
-        self.op_nesting_level -= 1
-        self.nesting_level -= 1
-
-        if self.op_nesting_level:
-            result = '(' + result + ')'
-        if not (self.nesting_level or self.op_nesting_level):
-            result += ';'
-        return result
+        return binary_op.accept(self.expression_printer) + ';'
 
     def visit_unary_operation(self, unary_op):
-        self.op_nesting_level += 1
-        self.nesting_level += 1
-        result = unary_op.op + unary_op.expr.accept(self)
-        self.op_nesting_level -= 1
-        self.nesting_level -= 1
-
-        if self.op_nesting_level:
-            result = '(' + result + ')'
-        if not (self.nesting_level or self.op_nesting_level):
-            result += ';'
-        return result
+        return unary_op.accept(self.expression_printer) + ';'
 
     def visit_function_call(self, function_call):
-        self.nesting_level += 1
-        result = function_call.fun_expr.accept(self) + '('
-        for arg in function_call.args:
-            result += arg.accept(self) + ', '
-        if function_call.args:
-            result = result[:-2]
-        result += ')'
-        self.nesting_level -= 1
-
-        if not self.nesting_level:
-            result += ';'
-        return result
+        return function_call.accept(self.expression_printer) + ';'
 
     def visit_function(self, function):
         pass
@@ -110,5 +107,5 @@ class PrettyPrinter(ASTNodeVisitor):
 
 
 def pretty_print(program):
-    result = program.accept(PrettyPrinter())
+    result = program.accept(PrettyPrinter(ExpressionPrinter()))
     print(result)
