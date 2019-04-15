@@ -5,17 +5,17 @@ import abc
 class Scope:
     def __init__(self, parent=None):
         self.parent = parent
-        self.d = {}
+        self.dictionary = {}
 
     def __getitem__(self, item):
-        if item in self.d:
-            return self.d[item]
+        if item in self.dictionary:
+            return self.dictionary[item]
         elif self.parent:
             return self.parent[item]
         raise KeyError(item)
 
     def __setitem__(self, key, value):
-        self.d[key] = value
+        self.dictionary[key] = value
 
 
 class ASTNode(metaclass=abc.ABCMeta):
