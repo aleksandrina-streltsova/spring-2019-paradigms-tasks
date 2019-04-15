@@ -59,11 +59,12 @@ def test_reference():
 
 
 def test_binary_op():
+    pretty_printer = PrettyPrinter(ExpressionPrinter())
     add = BinaryOperation(Number(2), '+', Number(3))
     mul = BinaryOperation(Number(1), '*', add)
     div = BinaryOperation(mul, '/', Number(5))
-    assert mul.accept(PrettyPrinter(ExpressionPrinter())) == '(1 * (2 + 3));'
-    assert div.accept(PrettyPrinter(ExpressionPrinter())) == '((1 * (2 + 3)) / 5);'
+    assert mul.accept(pretty_printer) == '(1 * (2 + 3));'
+    assert div.accept(pretty_printer) == '((1 * (2 + 3)) / 5);'
 
 
 def test_unary_op():
@@ -74,9 +75,10 @@ def test_unary_op():
 
 
 def test_function_call():
+    pretty_printer = PrettyPrinter(ExpressionPrinter())
     function_call = FunctionCall(Reference('foo'),
                                  [Number(1), Number(2), Number(3)])
-    assert function_call.accept(PrettyPrinter(ExpressionPrinter())) == 'foo(1, 2, 3);'
+    assert function_call.accept(pretty_printer) == 'foo(1, 2, 3);'
 
 
 def test_end_to_end(capsys):
