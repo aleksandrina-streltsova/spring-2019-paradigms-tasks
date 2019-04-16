@@ -57,9 +57,7 @@ class ConstantFolder(ASTNodeVisitor):
 
     def visit_function(self, function):
         new_args = function.args.copy()
-        new_body = []
-        for expr in function.body:
-            new_body.append(expr.accept(self))
+        new_body = [expr.accept(self) for expr in function.body]
         return Function(new_args, new_body)
 
 
