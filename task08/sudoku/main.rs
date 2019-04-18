@@ -12,6 +12,9 @@ extern crate threadpool;
 use field::Cell::*;
 use field::{parse_field, Field, N};
 
+use std::sync::mpsc;
+use threadpool::ThreadPool;
+
 /// Эта функция выполняет один шаг перебора в поисках решения головоломки.
 /// Она перебирает значение какой-нибудь пустой клетки на поле всеми непротиворечивыми способами.
 /// Что делать после фиксации значения, задаётся параметрами функции.
@@ -165,8 +168,6 @@ fn find_solution(f: &mut Field) -> Option<Field> {
     try_extend_field(f, |f_solved| f_solved.clone(), find_solution)
 }
 
-use threadpool::ThreadPool;
-use std::sync::mpsc;
 /// Перебирает все возможные решения головоломки, заданной параметром `f`, в несколько потоков.
 /// Если хотя бы одно решение `s` существует, возвращает `Some(s)`,
 /// в противном случае возвращает `None`.
@@ -181,26 +182,32 @@ fn find_solution_parallel(mut f: Field) -> Option<Field> {
 }
 
 fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Field>>, spawn_depth: i32) {
-    if  spawn_depth == 1 {
-        try_extend_field(&mut f, |f_solved| {
-            let tx = tx.clone();
-            tx.send(Some(f_solved.clone())).unwrap_or(());
-            f_solved.clone()
-        }, |f_next: &mut Field| -> Option<Field> {
-            let tx = tx.clone();
-            let mut f_next_clone = f_next.clone();
-            pool.execute(move || {
-                tx.send(find_solution(&mut f_next_clone)).unwrap_or(());
-            });
-            None
-        });
+    if spawn_depth == 1 {
+        try_extend_field(
+            &mut f,
+            |f_solved| {
+                let tx = tx.clone();
+                tx.send(Some(f_solved.clone())).unwrap_or(());
+                f_solved.clone()
+            },
+            |f_next: &mut Field| -> Option<Field> {
+                let tx = tx.clone();
+                let mut f_next_clone = f_next.clone();
+                pool.execute(move || {
+                    tx.send(find_solution(&mut f_next_clone)).unwrap_or(());
+                });
+                None
+            },
+        );
     } else {
-        try_extend_field(&mut f, |f_solved| {
-            f_solved.clone()
-        },|f_next: &mut Field| -> Option<Field> {
-            spawn_tasks(&pool, &mut f_next.clone(), tx.clone(), spawn_depth - 1);
-            None
-        });
+        try_extend_field(
+            &mut f,
+            |f_solved| f_solved.clone(),
+            |f_next: &mut Field| -> Option<Field> {
+                spawn_tasks(&pool, &mut f_next.clone(), tx.clone(), spawn_depth - 1);
+                None
+            },
+        );
     }
 }
 
