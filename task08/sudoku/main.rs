@@ -175,11 +175,10 @@ fn find_solution(f: &mut Field) -> Option<Field> {
 /// Если хотя бы одно решение `s` существует, возвращает `Some(s)`,
 /// в противном случае возвращает `None`.
 fn find_solution_parallel(mut f: Field) -> Option<Field> {
-    let SPAWN_DEPTH: i32 = 2;
+    let spawn_depth: i32 = 2;
     let (tx, rx) = mpsc::channel();
-    let n_threads = 8;
-    let pool = threadpool::ThreadPool::new(n_threads);
-    spawn_tasks(&pool, &mut f, tx, SPAWN_DEPTH);
+    let pool = threadpool::ThreadPool::new(8);
+    spawn_tasks(&pool, &mut f, tx, spawn_depth);
     let mut rx = rx.into_iter();
     rx.find_map(|x| x)
 }
