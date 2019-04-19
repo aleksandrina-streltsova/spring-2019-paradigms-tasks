@@ -200,7 +200,7 @@ fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Fie
                 f_solved.clone()
             },
             |f_next: &mut Field| -> Option<Field> {
-                spawn_tasks(&pool,  &mut f_next.clone(), tx.clone(), spawn_depth - 1);
+                spawn_tasks(&pool,   f_next, tx.clone(), spawn_depth - 1);
                 None
             },
         );
