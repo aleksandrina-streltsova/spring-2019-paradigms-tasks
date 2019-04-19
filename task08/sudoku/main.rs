@@ -178,12 +178,13 @@ fn find_solution_parallel(mut f: Field) -> Option<Field> {
     let spawn_depth: i32 = 2;
     let (tx, rx) = mpsc::channel();
     let pool = threadpool::ThreadPool::new(8);
-    spawn_tasks(&pool, &mut f, tx, spawn_depth);
+    spawn_tasks(&pool, &mut f, &tx, spawn_depth);
+    std::mem::drop(tx);
     let mut rx = rx.into_iter();
     rx.find_map(|x| x)
 }
 
-fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Field>>, spawn_depth: i32) {
+fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: &mpsc::Sender<Option<Field>>, spawn_depth: i32) {
     if spawn_depth == 0 {
         let tx = tx.clone();
         let mut f_clone = f.clone();
@@ -194,12 +195,10 @@ fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Fie
         try_extend_field(
             &mut f,
             |f_solved| {
-                let tx = tx.clone();
                 tx.send(Some(f_solved.clone())).unwrap_or(());
-                f_solved.clone()
             },
-            |f_next: &mut Field| -> Option<Field> {
-                spawn_tasks(&pool, f_next, tx.clone(), spawn_depth - 1);
+            |f_next: &mut Field| {
+                spawn_tasks(&pool, f_next, &tx, spawn_depth - 1);
                 None
             },
         );
