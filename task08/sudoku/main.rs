@@ -184,7 +184,14 @@ fn find_solution_parallel(mut f: Field) -> Option<Field> {
 }
 
 fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Field>>, spawn_depth: i32) {
-    if spawn_depth == 1 {
+    if spawn_depth == 0 {
+        let tx = tx.clone();
+        let mut f_clone = f.clone();
+        pool.execute(move || {
+            tx.send(find_solution(&mut f_clone)).unwrap_or(());
+        });
+    }
+    else if spawn_depth > 0 {
         try_extend_field(
             &mut f,
             |f_solved| {
@@ -193,20 +200,7 @@ fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Fie
                 f_solved.clone()
             },
             |f_next: &mut Field| -> Option<Field> {
-                let tx = tx.clone();
-                let mut f_next_clone = f_next.clone();
-                pool.execute(move || {
-                    tx.send(find_solution(&mut f_next_clone)).unwrap_or(());
-                });
-                None
-            },
-        );
-    } else {
-        try_extend_field(
-            &mut f,
-            |f_solved| f_solved.clone(),
-            |f_next: &mut Field| -> Option<Field> {
-                spawn_tasks(&pool, &mut f_next.clone(), tx.clone(), spawn_depth - 1);
+                spawn_tasks(&pool,  &mut f_next.clone(), tx.clone(), spawn_depth - 1);
                 None
             },
         );
