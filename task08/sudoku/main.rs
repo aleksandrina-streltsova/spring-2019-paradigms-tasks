@@ -190,8 +190,7 @@ fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Fie
         pool.execute(move || {
             tx.send(find_solution(&mut f_clone)).unwrap_or(());
         });
-    }
-    else if spawn_depth > 0 {
+    } else if spawn_depth > 0 {
         try_extend_field(
             &mut f,
             |f_solved| {
@@ -200,7 +199,7 @@ fn spawn_tasks(pool: &ThreadPool, mut f: &mut Field, tx: mpsc::Sender<Option<Fie
                 f_solved.clone()
             },
             |f_next: &mut Field| -> Option<Field> {
-                spawn_tasks(&pool,   f_next, tx.clone(), spawn_depth - 1);
+                spawn_tasks(&pool, f_next, tx.clone(), spawn_depth - 1);
                 None
             },
         );
