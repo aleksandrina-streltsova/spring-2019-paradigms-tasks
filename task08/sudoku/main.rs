@@ -187,18 +187,18 @@ fn spawn_tasks(pool: &ThreadPool, f: &mut Field, tx: &mpsc::Sender<Option<Field>
     assert!(spawn_depth >= 0);
     if spawn_depth == 0 {
         let tx = tx.clone();
-        let mut f_clone = f.clone();
+        let mut f = f.clone();
         pool.execute(move || {
-            tx.send(find_solution(&mut f_clone)).unwrap_or(());
+            tx.send(find_solution(&mut f)).unwrap_or(());
         });
     } else {
         try_extend_field(
             f,
-            |f_solved| {
-                tx.send(Some(f_solved.clone())).unwrap_or(());
+            |f| {
+                tx.send(Some(f.clone())).unwrap_or(());
             },
-            |f_next| {
-                spawn_tasks(&pool, f_next, &tx, spawn_depth - 1);
+            |f| {
+                spawn_tasks(&pool, f, &tx, spawn_depth - 1);
                 None
             },
         );
