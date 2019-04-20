@@ -175,17 +175,17 @@ fn find_solution(f: &mut Field) -> Option<Field> {
 /// Если хотя бы одно решение `s` существует, возвращает `Some(s)`,
 /// в противном случае возвращает `None`.
 fn find_solution_parallel(mut f: Field) -> Option<Field> {
-    let spawn_depth: i32 = 2;
+    const SPAWN_DEPTH: i32 = 2;
     let (tx, rx) = mpsc::channel();
     let pool = threadpool::ThreadPool::new(8);
-    spawn_tasks(&pool, &mut f, &tx, spawn_depth);
+    spawn_tasks(&pool, &mut f, &tx, SPAWN_DEPTH);
     std::mem::drop(tx);
     rx.into_iter().find_map(|x| x)
 }
 
-fn spawn_tasks(pool: &ThreadPool, f: &mut Field, tx: &mpsc::Sender<Option<Field>>, spawn_depth: i32) {
-    assert!(spawn_depth >= 0);
-    if spawn_depth == 0 {
+fn spawn_tasks(pool: &ThreadPool, f: &mut Field, tx: &mpsc::Sender<Option<Field>>, depth: i32) {
+    assert!(depth >= 0);
+    if depth == 0 {
         let tx = tx.clone();
         let mut f = f.clone();
         pool.execute(move || {
@@ -198,7 +198,7 @@ fn spawn_tasks(pool: &ThreadPool, f: &mut Field, tx: &mpsc::Sender<Option<Field>
                 tx.send(Some(f.clone())).unwrap_or(());
             },
             |f| {
-                spawn_tasks(&pool, f, &tx, spawn_depth - 1);
+                spawn_tasks(&pool, f, &tx, depth - 1);
                 None
             },
         );
