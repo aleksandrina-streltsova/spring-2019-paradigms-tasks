@@ -1,4 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+
 #include "tsqueue.h"
 #include "doctest.h"
 
@@ -42,18 +43,33 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        // TODO
-        static_cast<void>(qs);  // Используем переменную как-нибудь.
-        static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int counter = i;
+            threadsafe_queue_push(&qs[0], &counter);
+            int *received_value =
+                    static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            REQUIRE(received_value == &counter);
+            REQUIRE(counter == i + 1);
+        }
         return nullptr;
     };
 
-    // TODO
+    auto ponger = [](void *_qs) -> void * {
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int *counter =
+                    static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+            *counter += 1;
+            threadsafe_queue_push(&qs[1], counter);
+        }
+        return nullptr;
+    };
 
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
-    // TODO
-    static_cast<void>(t2);
+    REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
+
+    REQUIRE(pthread_join(t2, nullptr) == 0);
     REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
