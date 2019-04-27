@@ -45,9 +45,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         for (int i = 0; i < PING_PONGS; ++i) {
             int counter = i;
             threadsafe_queue_push(&qs[0], &counter);
-            int *received_value =
-                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
-            REQUIRE(received_value == &counter);
+            REQUIRE(threadsafe_queue_wait_and_pop(&qs[1]) == &counter);
             REQUIRE(counter == i + 1);
         }
         return nullptr;
@@ -56,10 +54,10 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; ++i) {
-            int *counter =
+            int *counter_ptr =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
-            *counter += 1;
-            threadsafe_queue_push(&qs[1], counter);
+            *counter_ptr += 1;
+            threadsafe_queue_push(&qs[1], counter_ptr);
         }
         return nullptr;
     };
