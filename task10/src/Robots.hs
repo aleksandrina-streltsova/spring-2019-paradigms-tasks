@@ -76,8 +76,9 @@ isAlive r = getHealth r > 0
 -- Обратите внимание, что неживой робот не может атаковать. В этом случае нужно просто
 -- вернуть второго робота, как будто ничего и не было
 fight :: Robot -> Robot -> Robot
-fight attacker defender | isAlive attacker = damage defender (getAttack attacker)
-                        | otherwise = defender
+fight attacker defender
+    | isAlive attacker = damage defender (getAttack attacker)
+    | otherwise        = defender
 
 -- Наконец, напишите функцию, которая бы моделировала три раунда схватки между
 -- двумя роботами и возвращала бы победителя. Схватка происходит следующим образом:
