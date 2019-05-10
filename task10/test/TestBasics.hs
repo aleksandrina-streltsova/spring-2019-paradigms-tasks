@@ -30,7 +30,7 @@ testsBasics = testGroup "Unit tests for Basics tasks"
         take' 3 [2..] @?= [2,3,4]
 
     , testCase "take' works on empty lists as expected" $
-        take' 3 ([] :: [Int]) @?= []
+        take' 0 ([] :: [Int]) @?= []
 
     , testCase "drop' drops 1 element from 3-element list" $
         drop' 1 [1,2,3] @?= [2,3]
@@ -42,7 +42,10 @@ testsBasics = testGroup "Unit tests for Basics tasks"
         filter' even [0..10] @?= [0,2..10]
 
     , testCase "filter' selects only even numbers from infinite list" $
-        take 100 (filter' even [0..]) @?= take 100 [0,2..]
+        take' 100 (filter' even [0..]) @?= take' 100 [0,2..]
+
+    , testCase "filter' is associative operation" $
+        (filter' (>5) . filter' even) [0..10] @?= [6,8,10]
 
     , testCase "foldl'' can be used for finding sum of elements" $
         foldl'' (+) 0 [1,2,3] @?= 6
@@ -52,6 +55,9 @@ testsBasics = testGroup "Unit tests for Basics tasks"
 
     , testCase "concat' works on infinite list and finite list as expected" $
         take' 100 (concat' [1,2,3] [4..]) @?= take' 100 [1..]
+
+    , testCase "concat' works on infinite lists as expected" $
+        take' 100 (concat' [1..] [4..]) @?= take' 100 [1..]
 
     , testCase "quickSort actualy sorts the list" $
         quickSort' [5,2,3,4,1] @?= [1..5]
