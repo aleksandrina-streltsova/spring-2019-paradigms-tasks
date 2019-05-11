@@ -44,11 +44,11 @@ testsBasics = testGroup "Unit tests for Basics tasks"
     , testCase "filter' selects only even numbers from infinite list" $
         take' 100 (filter' even [0..]) @?= take' 100 [0,2..]
 
-    , testCase "filter' is associative operation" $
-        (filter' (>5) . filter' even) [0..10] @?= [6,8,10]
-
     , testCase "foldl'' can be used for finding sum of elements" $
         foldl'' (+) 0 [1,2,3] @?= 6
+
+    , testCase "foldl'' can be used with nonassociative operation" $
+        foldl'' (-) 0 [1,2,3] @?= -6
 
     , testCase "concat' works on finite lists as expected" $
         concat' [1,2,3] [4,5,6] @?= [1..6]
