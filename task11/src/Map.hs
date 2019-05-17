@@ -1,7 +1,12 @@
 {-|
   Определение класса типов 'Map'.
 -}
+
+{-# LANGUAGE LambdaCase #-}
+
 module Map where
+
+import Data.Maybe
 
 {-|
   Поведение всех определённых здесь функций должно быть аналогично
@@ -31,45 +36,49 @@ class Map t where
     singleton :: k -> a -> t k a
 
     fromList :: Ord k => [(k, a)] -> t k a
-    fromList = undefined {- insert -}
+    fromList = foldl (\t (k, v) -> insert k v t) empty
 
     toAscList :: t k a -> [(k, a)]
 
     insert :: Ord k => k -> a -> t k a -> t k a
-    insert = undefined {- insertWith -}
+    insert = insertWith const
 
     insertWith :: Ord k => (a -> a -> a) -> k -> a -> t k a -> t k a
-    insertWith = undefined {- alter -}
+    insertWith f k v = alter (\case
+            Nothing -> Just v
+            Just x -> Just (f v x)) k
 
     insertWithKey :: Ord k => (k -> a -> a -> a) -> k -> a -> t k a -> t k a
-    insertWithKey = undefined {- insertWith -}
+    insertWithKey f k = insertWith (f k) k
 
     delete :: Ord k => k -> t k a -> t k a
-    delete = undefined {- alter -}
+    delete = alter (const Nothing)
 
     adjust :: Ord k => (a -> a) -> k -> t k a -> t k a
-    adjust = undefined {- alter -}
+    adjust f = alter (fmap f)
 
     adjustWithKey :: Ord k => (k -> a -> a) -> k -> t k a -> t k a
-    adjustWithKey = undefined {- adjust -}
+    adjustWithKey f k = adjust (f k) k
 
     update :: Ord k => (a -> Maybe a) -> k -> t k a -> t k a
-    update = undefined {- alter -}
+    update f = alter (\case
+            Nothing -> Nothing
+            Just x -> f x)
 
     updateWithKey :: Ord k => (k -> a -> Maybe a) -> k -> t k a -> t k a
-    updateWithKey = undefined {- update -}
+    updateWithKey f k = update (f k) k
 
     alter :: Ord k => (Maybe a -> Maybe a) -> k -> t k a -> t k a
 
     lookup :: Ord k => k -> t k a -> Maybe a
 
     member :: Ord k => k -> t k a -> Bool
-    member = undefined {- lookup -}
+    member k t = isJust (Map.lookup k t)
 
     notMember :: Ord k => k -> t k a -> Bool
-    notMember = undefined {- member -}
+    notMember k t = not (member k t)
 
     null :: t k a -> Bool
-    null = undefined {- size -}
+    null t = (size t == 0)
 
     size :: t k a -> Int
