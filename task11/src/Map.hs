@@ -2,8 +2,6 @@
   Определение класса типов 'Map'.
 -}
 
-{-# LANGUAGE LambdaCase #-}
-
 module Map where
 
 import Data.Maybe
@@ -36,7 +34,7 @@ class Map t where
     singleton :: k -> a -> t k a
 
     fromList :: Ord k => [(k, a)] -> t k a
-    fromList = foldl (\t (k, v) -> insert k v t) empty
+    fromList = foldl (flip $ uncurry insert) empty
 
     toAscList :: t k a -> [(k, a)]
 
@@ -44,26 +42,22 @@ class Map t where
     insert = insertWith const
 
     insertWith :: Ord k => (a -> a -> a) -> k -> a -> t k a -> t k a
-    insertWith f k v = alter (\case
-            Nothing -> Just v
-            Just x -> Just (f v x)) k
+    insertWith f k v = alter (Just . maybe v (f v)) k
 
     insertWithKey :: Ord k => (k -> a -> a -> a) -> k -> a -> t k a -> t k a
     insertWithKey f k = insertWith (f k) k
 
     delete :: Ord k => k -> t k a -> t k a
-    delete = alter (const Nothing)
+    delete = alter $ const Nothing
 
     adjust :: Ord k => (a -> a) -> k -> t k a -> t k a
-    adjust f = alter (fmap f)
+    adjust f = alter $ fmap f
 
     adjustWithKey :: Ord k => (k -> a -> a) -> k -> t k a -> t k a
     adjustWithKey f k = adjust (f k) k
 
     update :: Ord k => (a -> Maybe a) -> k -> t k a -> t k a
-    update f = alter (\case
-            Nothing -> Nothing
-            Just x -> f x)
+    update = alter . maybe Nothing
 
     updateWithKey :: Ord k => (k -> a -> Maybe a) -> k -> t k a -> t k a
     updateWithKey f k = update (f k) k
@@ -73,12 +67,12 @@ class Map t where
     lookup :: Ord k => k -> t k a -> Maybe a
 
     member :: Ord k => k -> t k a -> Bool
-    member k t = isJust (Map.lookup k t)
+    member k = isJust . Map.lookup k
 
     notMember :: Ord k => k -> t k a -> Bool
-    notMember k t = not (member k t)
+    notMember k = not . member k
 
     null :: t k a -> Bool
-    null t = (size t == 0)
+    null t = size t == 0
 
     size :: t k a -> Int

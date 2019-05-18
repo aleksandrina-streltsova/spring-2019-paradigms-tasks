@@ -109,7 +109,7 @@ mapTests name (_ :: Proxy m) =
                 let map = update f 2 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 2 map @?= Just "new a"
         ],
-        testGroup "Test memeber" [
+        testGroup "Test member" [
             testCase "key is in map" $
                 let map = fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String in
                 member 1 map @?= True
@@ -118,7 +118,7 @@ mapTests name (_ :: Proxy m) =
                 let map = fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String in
                 member 5 map @?= False
         ],
-        testGroup "Test notMemeber" [
+        testGroup "Test notMember" [
             testCase "key is in map" $
                 let map = fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String in
                 notMember 1 map @?= False
