@@ -53,12 +53,12 @@ instance Map NaiveTree where
 
     alter f k' t =
         case t of
-        Nil -> g (f Nothing)
+        Nil -> insertedAt Nothing
         Node k a l r
             | k' < k    -> Node k a (alter f k' l) r
             | k' > k    -> Node k a l (alter f k' r)
-            | otherwise -> let a' = g (f (Just a)) in merge l (merge a' r)
-        where g = maybe empty (singleton k')
+            | otherwise -> let a' = insertedAt (Just a) in merge l (merge a' r)
+        where insertedAt = maybe empty (singleton k') . f
 
     lookup _   Nil      = Nothing
     lookup k' (Node k a l r)

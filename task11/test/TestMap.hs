@@ -41,7 +41,7 @@ mapTests name (_ :: Proxy m) =
                 let map = insert 5 "x" (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 5 map @?= Just "x"
             ,
-            testCase "existent key" $
+            testCase "existing key" $
                 let map = insert 1 "x" (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 1 map @?= Just "x"
         ],
@@ -54,7 +54,7 @@ mapTests name (_ :: Proxy m) =
                 let map = insertWith (++) 5 "x" (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 5 map @?= Just "x"
             ,
-            testCase "existent key" $
+            testCase "existing key" $
                 let map = insertWith (++) 1 "x" (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 1 map @?= Just "xb"
         ],
@@ -64,36 +64,36 @@ mapTests name (_ :: Proxy m) =
                 let map = insertWithKey f 5 "x" (empty :: m Int String) in
                 Map.lookup 5 map @?= Just "x"
             ,
-            testCase "existent key" $
+            testCase "existing key" $
                 let f k new_v old_v = show k ++ new_v ++ old_v in
                 let map = insertWithKey f 1 "x" (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 1 map @?= Just "1xb"
         ],
         testGroup "delete" [
-            testCase "nonexistent key" $
+            testCase "non-existing key" $
                 let map = delete 5 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 toAscList map @?= [(1, "b"), (2, "a"), (3, "c")]
             ,
-            testCase "existent key" $
+            testCase "existing key" $
                 let map = delete 1 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 toAscList map @?= [(2, "a"), (3, "c")]
         ],
         testGroup "adjust" [
-            testCase "nonexistent key" $
+            testCase "non-existing key" $
                 let map = adjust ("new " ++) 5 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 5 map @?= Nothing
             ,
-            testCase "delete existent key" $
+            testCase "delete existing key" $
                 let map = adjust ("new " ++) 1 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 1 map @?= Just "new b"
         ],
         testGroup "adjustWithKey" [
-            testCase "nonexistent key" $
+            testCase "non-existing key" $
                 let f k v = show k ++ v in
                 let map = adjustWithKey f 5 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 5 map @?= Nothing
                 ,
-            testCase "existent key" $
+            testCase "existing key" $
                 let f k v = show k ++ v in
                 let map = adjustWithKey f 1 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 Map.lookup 1 map @?= Just "1b"
@@ -121,22 +121,22 @@ mapTests name (_ :: Proxy m) =
                 Map.lookup 2 map @?= Just "2 new a"
         ],
         testGroup "alter" [
-            testCase "existent key" $
+            testCase "existing key" $
                 let f _ = Just "c" in
                 let map = alter f 1 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 toAscList map @?= [(1, "c"), (2, "a"), (3, "c")]
             ,
-            testCase "nonexistent key" $
+            testCase "non-existing key" $
                 let f _ = Just "c" in
                 let map = alter f 7 (fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String) in
                 toAscList map @?= [(1, "b"), (2, "a"), (3, "c"), (7, "c")]
         ],
         testGroup "lookup" [
-            testCase "existent key" $
+            testCase "existing key" $
                 let map = fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String in
                 Map.lookup 1 map @?= Just "b"
             ,
-            testCase "nonexistent key" $
+            testCase "non-existing key" $
                 let map = fromList [(2, "a"), (1, "b"), (3, "c")] :: m Int String in
                 Map.lookup 7 map @?= Nothing
         ],
