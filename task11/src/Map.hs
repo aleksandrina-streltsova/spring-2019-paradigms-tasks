@@ -1,7 +1,6 @@
 {-|
   Определение класса типов 'Map'.
 -}
-
 module Map where
 
 import Data.Maybe
